@@ -72,9 +72,17 @@ jobs:
         # Create or switch to csharp branch
         git checkout -B csharp
         
-        # Remove existing content and copy new content
+        # Remove existing content
         rm -rf *
-        cp -r out/csharp/* .
+        
+        # Copy new content if directory exists
+        if [ -d "out/csharp" ] && [ "$(ls -A out/csharp)" ]; then
+          cp -r out/csharp/* .
+          echo "Copied C# files successfully"
+        else
+          echo "No C# files to copy"
+          exit 0
+        fi
         
         # Add all files
         git add .
@@ -112,9 +120,17 @@ jobs:
         # Create or switch to typescript branch
         git checkout -B typescript
         
-        # Remove existing content and copy new content
+        # Remove existing content
         rm -rf *
-        cp -r out/typescript/* .
+        
+        # Copy new content if directory exists
+        if [ -d "out/typescript" ] && [ "$(ls -A out/typescript)" ]; then
+          cp -r out/typescript/* .
+          echo "Copied TypeScript files successfully"
+        else
+          echo "No TypeScript files to copy"
+          exit 0
+        fi
         
         # Add all files
         git add .
@@ -152,9 +168,17 @@ jobs:
         # Create or switch to javascript branch
         git checkout -B javascript
         
-        # Remove existing content and copy new content
+        # Remove existing content
         rm -rf *
-        cp -r out/javascript/* .
+        
+        # Copy new content if directory exists
+        if [ -d "out/javascript" ] && [ "$(ls -A out/javascript)" ]; then
+          cp -r out/javascript/* .
+          echo "Copied JavaScript files successfully"
+        else
+          echo "No JavaScript files to copy"
+          exit 0
+        fi
         
         # Add all files
         git add .
@@ -192,9 +216,17 @@ jobs:
         # Create or switch to python branch
         git checkout -B python
         
-        # Remove existing content and copy new content
+        # Remove existing content
         rm -rf *
-        cp -r out/python/* .
+        
+        # Copy new content if directory exists
+        if [ -d "out/python" ] && [ "$(ls -A out/python)" ]; then
+          cp -r out/python/* .
+          echo "Copied Python files successfully"
+        else
+          echo "No Python files to copy"
+          exit 0
+        fi
         
         # Add all files
         git add .
@@ -232,9 +264,17 @@ jobs:
         # Create or switch to gdscript branch
         git checkout -B gdscript
         
-        # Remove existing content and copy new content
+        # Remove existing content
         rm -rf *
-        cp -r out/gdscript/* .
+        
+        # Copy new content if directory exists
+        if [ -d "out/gdscript" ] && [ "$(ls -A out/gdscript)" ]; then
+          cp -r out/gdscript/* .
+          echo "Copied GDScript files successfully"
+        else
+          echo "No GDScript files to copy"
+          exit 0
+        fi
         
         # Add all files
         git add .
