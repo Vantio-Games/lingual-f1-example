@@ -1,0 +1,249 @@
+name: Build and Deploy Language Packages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      has-changes: ${{ steps.check-changes.outputs.has-changes }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm install -g lingual-lang
+    
+    - name: Build packages
+      run: npx lingual-lang build f1.example
+    
+    - name: Check for changes
+      id: check-changes
+      run: |
+        # Check if there are any changes in the out directory
+        if [ -d "out" ] && [ "$(ls -A out)" ]; then
+          echo "has-changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "has-changes=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: language-packages
+        path: out/
+        retention-days: 1
+
+  deploy-csharp:
+    needs: build
+    if: needs.build.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: language-packages
+        path: out/
+    
+    - name: Deploy to C# branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Create or switch to csharp branch
+        git checkout -B csharp
+        
+        # Remove existing content and copy new content
+        rm -rf *
+        cp -r out/csharp/* .
+        
+        # Add all files
+        git add .
+        
+        # Commit if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit for C#"
+        else
+          git commit -m "Update C# package from main branch"
+          git push origin csharp --force
+        fi
+
+  deploy-typescript:
+    needs: build
+    if: needs.build.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: language-packages
+        path: out/
+    
+    - name: Deploy to TypeScript branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Create or switch to typescript branch
+        git checkout -B typescript
+        
+        # Remove existing content and copy new content
+        rm -rf *
+        cp -r out/typescript/* .
+        
+        # Add all files
+        git add .
+        
+        # Commit if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit for TypeScript"
+        else
+          git commit -m "Update TypeScript package from main branch"
+          git push origin typescript --force
+        fi
+
+  deploy-javascript:
+    needs: build
+    if: needs.build.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: language-packages
+        path: out/
+    
+    - name: Deploy to JavaScript branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Create or switch to javascript branch
+        git checkout -B javascript
+        
+        # Remove existing content and copy new content
+        rm -rf *
+        cp -r out/javascript/* .
+        
+        # Add all files
+        git add .
+        
+        # Commit if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit for JavaScript"
+        else
+          git commit -m "Update JavaScript package from main branch"
+          git push origin javascript --force
+        fi
+
+  deploy-python:
+    needs: build
+    if: needs.build.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: language-packages
+        path: out/
+    
+    - name: Deploy to Python branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Create or switch to python branch
+        git checkout -B python
+        
+        # Remove existing content and copy new content
+        rm -rf *
+        cp -r out/python/* .
+        
+        # Add all files
+        git add .
+        
+        # Commit if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit for Python"
+        else
+          git commit -m "Update Python package from main branch"
+          git push origin python --force
+        fi
+
+  deploy-gdscript:
+    needs: build
+    if: needs.build.outputs.has-changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: language-packages
+        path: out/
+    
+    - name: Deploy to GDScript branch
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Create or switch to gdscript branch
+        git checkout -B gdscript
+        
+        # Remove existing content and copy new content
+        rm -rf *
+        cp -r out/gdscript/* .
+        
+        # Add all files
+        git add .
+        
+        # Commit if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit for GDScript"
+        else
+          git commit -m "Update GDScript package from main branch"
+          git push origin gdscript --force
+        fi 

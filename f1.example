@@ -1,9 +1,16 @@
-module  {
+type Driver {
+    driverId: string;
+    name: string;
+    surname: string;
+    nationality: string;
+    birthday: string;
+    num: string;
+    shortName: string;
+    url: string;
+}
 
-    type  {
-
-
-
-    }
-
+function get_Drivers(): Driver[] {
+    const response = http.get("https://f1api.dev/api/drivers");
+    const data = response.json();
+    return data.drivers;
 }
