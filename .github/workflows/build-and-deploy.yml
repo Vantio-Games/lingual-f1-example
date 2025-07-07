@@ -40,6 +40,22 @@ jobs:
           echo "has-changes=false" >> $GITHUB_OUTPUT
         fi
     
+    - name: List generated languages
+      run: |
+        if [ -d "out" ]; then
+          echo "Generated languages:"
+          ls -la out/
+          echo "Language directories:"
+          for lang in out/*/; do
+            if [ -d "$lang" ]; then
+              lang_name=$(basename "$lang")
+              echo "- $lang_name"
+            fi
+          done
+        else
+          echo "No out directory found"
+        fi
+    
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -47,10 +63,11 @@ jobs:
         path: out/
         retention-days: 1
 
-  deploy-csharp:
+  deploy-languages:
     needs: build
     if: needs.build.outputs.has-changes == 'true'
     runs-on: ubuntu-latest
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -64,225 +81,50 @@ jobs:
         name: language-packages
         path: out/
     
-    - name: Deploy to C# branch
+    - name: Deploy all language packages
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         
-        # Create or switch to csharp branch
-        git checkout -B csharp
-        
-        # Remove existing content
-        rm -rf *
-        
-        # Copy new content if directory exists
-        if [ -d "out/csharp" ] && [ "$(ls -A out/csharp)" ]; then
-          cp -r out/csharp/* .
-          echo "Copied C# files successfully"
-        else
-          echo "No C# files to copy"
+        # Check if out directory exists and has content
+        if [ ! -d "out" ] || [ -z "$(ls -A out)" ]; then
+          echo "No language packages found to deploy"
           exit 0
         fi
         
-        # Add all files
-        git add .
+        # Process each language directory
+        for lang_dir in out/*/; do
+          if [ -d "$lang_dir" ]; then
+            lang_name=$(basename "$lang_dir")
+            echo "Processing language: $lang_name"
+            
+            # Create or switch to language branch
+            git checkout -B "$lang_name"
+            
+            # Remove existing content
+            rm -rf *
+            
+            # Copy new content if directory has files
+            if [ "$(ls -A "$lang_dir")" ]; then
+              cp -r "$lang_dir"/* .
+              echo "Copied $lang_name files successfully"
+            else
+              echo "No $lang_name files to copy"
+              continue
+            fi
+            
+            # Add all files
+            git add .
+            
+            # Commit if there are changes
+            if git diff --staged --quiet; then
+              echo "No changes to commit for $lang_name"
+            else
+              git commit -m "Update $lang_name package from main branch"
+              git push origin "$lang_name" --force
+              echo "Successfully deployed $lang_name package"
+            fi
+          fi
+        done
         
-        # Commit if there are changes
-        if git diff --staged --quiet; then
-          echo "No changes to commit for C#"
-        else
-          git commit -m "Update C# package from main branch"
-          git push origin csharp --force
-        fi
-
-  deploy-typescript:
-    needs: build
-    if: needs.build.outputs.has-changes == 'true'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: language-packages
-        path: out/
-    
-    - name: Deploy to TypeScript branch
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Create or switch to typescript branch
-        git checkout -B typescript
-        
-        # Remove existing content
-        rm -rf *
-        
-        # Copy new content if directory exists
-        if [ -d "out/typescript" ] && [ "$(ls -A out/typescript)" ]; then
-          cp -r out/typescript/* .
-          echo "Copied TypeScript files successfully"
-        else
-          echo "No TypeScript files to copy"
-          exit 0
-        fi
-        
-        # Add all files
-        git add .
-        
-        # Commit if there are changes
-        if git diff --staged --quiet; then
-          echo "No changes to commit for TypeScript"
-        else
-          git commit -m "Update TypeScript package from main branch"
-          git push origin typescript --force
-        fi
-
-  deploy-javascript:
-    needs: build
-    if: needs.build.outputs.has-changes == 'true'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: language-packages
-        path: out/
-    
-    - name: Deploy to JavaScript branch
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Create or switch to javascript branch
-        git checkout -B javascript
-        
-        # Remove existing content
-        rm -rf *
-        
-        # Copy new content if directory exists
-        if [ -d "out/javascript" ] && [ "$(ls -A out/javascript)" ]; then
-          cp -r out/javascript/* .
-          echo "Copied JavaScript files successfully"
-        else
-          echo "No JavaScript files to copy"
-          exit 0
-        fi
-        
-        # Add all files
-        git add .
-        
-        # Commit if there are changes
-        if git diff --staged --quiet; then
-          echo "No changes to commit for JavaScript"
-        else
-          git commit -m "Update JavaScript package from main branch"
-          git push origin javascript --force
-        fi
-
-  deploy-python:
-    needs: build
-    if: needs.build.outputs.has-changes == 'true'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: language-packages
-        path: out/
-    
-    - name: Deploy to Python branch
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Create or switch to python branch
-        git checkout -B python
-        
-        # Remove existing content
-        rm -rf *
-        
-        # Copy new content if directory exists
-        if [ -d "out/python" ] && [ "$(ls -A out/python)" ]; then
-          cp -r out/python/* .
-          echo "Copied Python files successfully"
-        else
-          echo "No Python files to copy"
-          exit 0
-        fi
-        
-        # Add all files
-        git add .
-        
-        # Commit if there are changes
-        if git diff --staged --quiet; then
-          echo "No changes to commit for Python"
-        else
-          git commit -m "Update Python package from main branch"
-          git push origin python --force
-        fi
-
-  deploy-gdscript:
-    needs: build
-    if: needs.build.outputs.has-changes == 'true'
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: language-packages
-        path: out/
-    
-    - name: Deploy to GDScript branch
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Create or switch to gdscript branch
-        git checkout -B gdscript
-        
-        # Remove existing content
-        rm -rf *
-        
-        # Copy new content if directory exists
-        if [ -d "out/gdscript" ] && [ "$(ls -A out/gdscript)" ]; then
-          cp -r out/gdscript/* .
-          echo "Copied GDScript files successfully"
-        else
-          echo "No GDScript files to copy"
-          exit 0
-        fi
-        
-        # Add all files
-        git add .
-        
-        # Commit if there are changes
-        if git diff --staged --quiet; then
-          echo "No changes to commit for GDScript"
-        else
-          git commit -m "Update GDScript package from main branch"
-          git push origin gdscript --force
-        fi 
+        echo "All language packages processed" 
